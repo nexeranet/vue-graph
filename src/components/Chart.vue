@@ -3,24 +3,54 @@
   <div class="container">
     <h3>Direct graph</h3>
     <button @click="createPoint">Create Point</button>
+    <button @click="randomize">Randomize</button>
+    <input type="text" v-model="start" />
+    <input type="text" v-model="end" />
+    <button @click="search">Search</button>
     <svg id="graph"></svg>
   </div>
 </template>
 
 <script>
 import { generateData, createNode } from "./data.js";
+import { formatData, CreateDFS, RemovePath, CreateBFS } from "./floyds.js";
 import * as d3 from "d3";
-
-let data = generateData(10);
+const number_of_data = 10;
+let startData = generateData(number_of_data);
 export default {
   data() {
     return {
-      data: data,
       width: 0,
       height: 0,
+      start: 0,
+      end: 1,
     };
   },
   methods: {
+    search() {
+      if (this.end === this.start) {
+        return;
+      }
+      let nodes_map = formatData(startData);
+      const start = Number(this.start);
+      const end = Number(this.end);
+      const results = [];
+      for (let i = 0; i < number_of_data; i++) {
+        let res = CreateDFS(nodes_map, end)(start);
+        if (res == false) {
+          break;
+        }
+        results.push(res);
+        nodes_map = RemovePath(nodes_map, res);
+      }
+      console.log(results);
+      console.log(startData);
+    },
+    randomize() {
+      startData = generateData(number_of_data);
+      d3.select("#group").html("");
+      this.render(startData);
+    },
     initSVG() {
       var svg = d3.select("svg");
       let svg_node = document.querySelector("svg");
@@ -40,6 +70,7 @@ export default {
         markerWidth: 5,
         markerHeight: 5,
         xoverflow: "visible",
+        yoverflow: "visible",
       };
       for (const [key, value] of Object.entries(attrs)) {
         marker.attr(key, value);
@@ -57,13 +88,13 @@ export default {
       this.height = height;
     },
     createPoint() {
-      let [node, links] = createNode(data.nodes.length);
-      data = {
-        nodes: [...data.nodes, node],
-        links: [...data.links, ...links],
+      let [node, links] = createNode(startData.nodes.length);
+      startData = {
+        nodes: [...startData.nodes, node],
+        links: [...startData.links, ...links],
       };
       d3.select("#group").html("");
-      this.render(data);
+      this.render(startData);
     },
     render(data) {
       const width = this.width,
@@ -142,7 +173,7 @@ export default {
         .data(links)
         .join("line")
         .attr("stroke-width", function (d) {
-          return Math.sqrt(d.value);
+          return Math.sqrt(d.value / 2);
         })
         .attr("marker-end", "url(#arrowhead)")
         .attr("stroke", (d) => {
@@ -227,7 +258,7 @@ export default {
   },
   mounted() {
     this.initSVG();
-    this.render(data);
+    this.render(startData);
     console.log("START");
   },
 };
@@ -244,6 +275,7 @@ text {
   max-width: 100%;
   width: 100%;
   box-sizing: border-box;
+  border: 1px solid lightblue;
 }
 a {
   color: #42b983;

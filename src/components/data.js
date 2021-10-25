@@ -11,9 +11,10 @@ export function createNode(length) {
   let links = [];
   let num_of_links = randomIntFromInterval(1, 4);
   for (let i = 0; i < num_of_links; i++) {
+    const target = randomIntFromInterval(0, length);
     links.push({
       source: Node.id,
-      target: randomIntFromInterval(0, length) == Node.id ? 0 : randomIntFromInterval(0, length - 1),
+      target: target == Node.id ? 0 : target,
       value: randomIntFromInterval(0, 50),
       stroke: "lightblue",
     })
@@ -21,26 +22,54 @@ export function createNode(length) {
   return [Node, links]
 }
 
-export function generateData(num) {
+export function generateData(num = 10) {
   let nodes = [],
     links = [];
-  for (let i = 0; i < num; i++) {
-    nodes.push({
-      id: i,
-      name: i,
-      weight: randomIntFromInterval(10, 30)
-    })
-  }
-  for (let node of nodes) {
-    let num_of_links = randomIntFromInterval(1, 4)
+  const inf = Number.POSITIVE_INFINITY;
+  const matrix = (function () {
+    const arr = new Array(num).fill(inf);
+    return arr.map(() => new Array(num).fill(inf))
+  })()
+  for (let key_n in matrix) {
+    let num_of_links = randomIntFromInterval(1, 5)
+
     for (let i = 0; i < num_of_links; i++) {
-      links.push({
-        source: node.id,
-        target: randomIntFromInterval(0, nodes.length - 1) == node.id ? 0 : randomIntFromInterval(0, nodes.length - 1),
-        value: randomIntFromInterval(0, 50),
-        stroke: "lightblue",
-      })
+      matrix[key_n][randomIntFromInterval(0, num - 1)] = randomIntFromInterval(1, 50)
     }
+    loop: for (let key_l in matrix) {
+      const target = matrix[key_n][key_l];
+      if (key_n === key_l) {
+        matrix[key_n][key_l] = 0;
+        continue loop;
+      }
+      if (!isFinite(target)) {
+        continue loop;
+      }
+      matrix[key_l][key_n] = target;
+    }
+  }
+
+  for (let key in matrix) {
+    const node = {
+      id: key,
+      name: key,
+      links: [],
+      weight: randomIntFromInterval(10, 30)
+    };
+    loop: for (let [l_key, value] of Object.entries(matrix[key])) {
+      if (!isFinite(value) || value === 0) {
+        continue loop;
+      }
+      const link = {
+        source: key,
+        target: l_key,
+        value: value,
+        stroke: "lightblue",
+      };
+      node.links.push(link);
+      links.push(link);
+    }
+    nodes.push(node)
   }
 
   return {
