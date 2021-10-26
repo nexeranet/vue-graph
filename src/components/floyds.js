@@ -81,3 +81,35 @@ export function CreateBFS(nodes = new Map(), end) {
     }
     return bfs;
 }
+
+function copyObject(obj) {
+    return JSON.parse(JSON.stringify(obj))
+}
+export function CalcValues(nodes, paths) {
+    var results = [];
+    console.log(paths);
+    for (let path of paths) {
+        const path_array = Array.from(path);
+        let sum = 0;
+        let steps = [];
+        Loop: for (let [key, step] of Object.entries(path_array)) {
+            key = Number(key);
+            if (key === path_array.length - 1) {
+                break Loop;
+            }
+            const node = nodes[step];
+            const target = node.links.find((e) => e.target == path_array[Number(key) + 1]);
+            if (target) {
+                sum += target.value;
+                target.isResult = true;
+                steps.push(copyObject(target));
+            }
+        }
+        results.push({
+            steps: steps,
+            path: path,
+            sum: sum
+        })
+    }
+    return results.sort((a, b) => a.sum - b.sum);
+}

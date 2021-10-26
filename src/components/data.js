@@ -4,20 +4,24 @@ function randomIntFromInterval(min, max) {
 
 export function createNode(length) {
   let Node = {
-    id: length,
-    name: length,
+    id: String(length),
+    name: String(length),
+    links: [],
     weight: randomIntFromInterval(10, 30)
   };
   let links = [];
   let num_of_links = randomIntFromInterval(1, 4);
   for (let i = 0; i < num_of_links; i++) {
     const target = randomIntFromInterval(0, length);
-    links.push({
+    const link = {
       source: Node.id,
-      target: target == Node.id ? 0 : target,
+      target: target == Node.id ? '0' : String(target),
       value: randomIntFromInterval(0, 50),
       stroke: "lightblue",
-    })
+      isResult: false,
+    };
+    links.push(link)
+    Node.links.push(link)
   }
   return [Node, links]
 }
@@ -64,6 +68,7 @@ export function generateData(num = 10) {
         source: key,
         target: l_key,
         value: value,
+        isResult: false,
         stroke: "lightblue",
       };
       node.links.push(link);

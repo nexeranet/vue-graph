@@ -1,29 +1,46 @@
 
 <template>
   <div class="container">
-    <h3>Direct graph</h3>
+    <h3>SEARCH IN DIRECTED GRAPH</h3>
     <button @click="createPoint">Create Point</button>
     <button @click="randomize">Randomize</button>
     <input type="text" v-model="start" />
     <input type="text" v-model="end" />
     <button @click="search">Search</button>
+    <div v-if="results.length">
+      <Result
+        v-for="(item, index) of results"
+        v-bind:result="item"
+        :index="index"
+        v-bind:key="index"
+      ></Result>
+    </div>
+    <div v-if="isEmpty">
+      <h3>NO RESULTS</h3>
+    </div>
     <svg id="graph"></svg>
   </div>
 </template>
 
 <script>
 import { generateData, createNode } from "./data.js";
-import { formatData, CreateDFS, RemovePath, CreateBFS } from "./floyds.js";
+import { formatData, CreateDFS, RemovePath, CalcValues } from "./floyds.js";
+import ResultVue from "./Result.vue";
 import * as d3 from "d3";
-const number_of_data = 10;
+let number_of_data = 100;
 let startData = generateData(number_of_data);
 export default {
+  components: {
+    Result: ResultVue,
+  },
   data() {
     return {
       width: 0,
       height: 0,
       start: 0,
       end: 1,
+      isEmpty: false,
+      results: [],
     };
   },
   methods: {
@@ -32,6 +49,7 @@ export default {
         return;
       }
       let nodes_map = formatData(startData);
+      console.log(nodes_map);
       const start = Number(this.start);
       const end = Number(this.end);
       const results = [];
@@ -43,13 +61,43 @@ export default {
         results.push(res);
         nodes_map = RemovePath(nodes_map, res);
       }
-      console.log(results);
-      console.log(startData);
+      const values = CalcValues(startData.nodes, results);
+      const viewResults = [];
+      for (const [key, val] of Object.entries(values)) {
+        let color = "rgb(0, 255, 0)";
+        if (key == 3) {
+          break;
+        }
+        switch (key) {
+          case "1":
+            color = "rgb(245, 236, 67)";
+            break;
+          case "2":
+            color = "blue";
+            break;
+        }
+        val.color = color;
+        val.steps.forEach((el) => {
+          el.stroke = color;
+          startData.links.push(el);
+        });
+        viewResults.push(val);
+      }
+      if (viewResults.length) {
+        this.results = viewResults;
+        this.isEmpty = false;
+      } else {
+        this.isEmpty = true;
+        this.results = [];
+      }
+      this.update();
+      this.clearResultsInGraph();
     },
     randomize() {
       startData = generateData(number_of_data);
-      d3.select("#group").html("");
-      this.render(startData);
+      this.isEmpty = false;
+      this.results = [];
+      this.update();
     },
     initSVG() {
       var svg = d3.select("svg");
@@ -87,14 +135,25 @@ export default {
       this.width = width;
       this.height = height;
     },
+    clearResultsInGraph() {
+      startData.links = startData.links.filter((el) => !el.isResult);
+    },
+    update() {
+      d3.select("#group").html("");
+      this.render(startData);
+    },
     createPoint() {
-      let [node, links] = createNode(startData.nodes.length);
+      let [node, links] = createNode(number_of_data);
+      console.log(startData, node, links);
       startData = {
         nodes: [...startData.nodes, node],
         links: [...startData.links, ...links],
       };
-      d3.select("#group").html("");
-      this.render(startData);
+      this.isEmpty = false;
+      this.results = [];
+      number_of_data += 1;
+      this.clearResultsInGraph();
+      this.update();
     },
     render(data) {
       const width = this.width,
@@ -126,7 +185,7 @@ export default {
           ? null
           : d3.map(data.links, linkStrokeWidth);
 
-      // Replace the input nodes and links with mutable objects for the simulation.
+      // Replace the input margin: 0px 10px 10px 0px;nodes and links with mutable objects for the simulation.
       let nodes = d3.map(data.nodes, (val, i) => ({
         id: N[i],
         name: val.name,
@@ -153,10 +212,10 @@ export default {
           d3
             .forceLink(links)
             .id(({ index: i }) => N[i])
-            .distance(200)
+            .distance(500)
         )
-        .force("charge", d3.forceManyBody().strength(-300))
-        .force("attraceForce", d3.forceManyBody().strength(-100))
+        .force("charge", d3.forceManyBody().strength(-1000))
+        .force("attraceForce", d3.forceManyBody().strength(-500))
         .force("center", d3.forceCenter());
       simulation.on("tick", ticked);
 
@@ -268,14 +327,17 @@ text {
   font-size: 10px;
 }
 .container {
-  padding: 15px;
+  padding: 3vh 10vw;
   box-sizing: border-box;
 }
 .container svg {
+  margin-top: 30px;
   max-width: 100%;
   width: 100%;
   box-sizing: border-box;
-  border: 1px solid lightblue;
+  box-shadow: rgb(194 202 214) 0px 0.6em, rgb(194 202 214) 0px -0.6em,
+    rgb(194 202 214) 0.6em 0px, rgb(194 202 214) -0.6em 0px;
+  border: 5px solid white;
 }
 a {
   color: #42b983;
@@ -296,5 +358,9 @@ line {
 text {
   font-family: sans-serif;
   font-size: 10px;
+}
+h3 {
+  font-size: 30px;
+  color: rgb(0, 255, 0);
 }
 </style>
