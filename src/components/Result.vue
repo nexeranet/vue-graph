@@ -6,8 +6,9 @@
       <span v-for="(step, index) in result.steps" :key="index">
         <template v-if="index == 0">
           <span>{{ step.source }}</span
-          >- <span>{{ step.target }}</span
           >-
+          <span>{{ step.target }} </span>
+          <template v-if="result.steps.length > 1"> -</template>
         </template>
         <template v-else-if="index == result.steps.length - 1">
           <span>{{ step.target }}</span>

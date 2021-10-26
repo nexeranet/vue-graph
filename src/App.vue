@@ -14,14 +14,16 @@ import Chart from "./components/Chart.vue";
   text-align: center;
   color: #2c3e50;
   font-family: "IBM Plex Mono", monospace;
-  background-image: url("./assets/crop-screen.png");
+  /* background-image: url("./assets/crop-screen.png");
   background-repeat: no-repeat;
   background-size: cover;
-  background-position: center center;
+  background-position: center center; */
   min-height: 100vh;
 }
 html {
   background-color: #000;
+  background-image: url("./assets/bg-bricks.gif");
+  background-repeat: repeat;
 }
 button {
   background: rgb(246, 247, 249);

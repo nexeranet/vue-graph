@@ -24,7 +24,7 @@
 
 <script>
 import { generateData, createNode } from "./data.js";
-import { formatData, CreateDFS, RemovePath, CalcValues } from "./floyds.js";
+import { formatData, CreateDFS, RemovePath, CalcValues } from "./graph.js";
 import ResultVue from "./Result.vue";
 import * as d3 from "d3";
 let number_of_data = 100;
@@ -48,17 +48,20 @@ export default {
       if (this.end === this.start) {
         return;
       }
+      console.log(startData.nodes);
       let nodes_map = formatData(startData);
       console.log(nodes_map);
       const start = Number(this.start);
       const end = Number(this.end);
       const results = [];
+      console.log(JSON.parse(JSON.stringify(nodes_map)));
       for (let i = 0; i < number_of_data; i++) {
         let res = CreateDFS(nodes_map, end)(start);
         if (res == false) {
           break;
         }
         results.push(res);
+        console.log(nodes_map, res);
         nodes_map = RemovePath(nodes_map, res);
       }
       const values = CalcValues(startData.nodes, results);
@@ -73,7 +76,7 @@ export default {
             color = "rgb(245, 236, 67)";
             break;
           case "2":
-            color = "blue";
+            color = "#007eff";
             break;
         }
         val.color = color;
@@ -126,7 +129,7 @@ export default {
       marker
         .append("svg:path")
         .attr("d", "M 0,-5 L 10 ,0 L 0,5")
-        .attr("fill", "lightblue")
+        .attr("fill", "currentColor")
         .style("stroke", "none");
 
       svg.append("g").attr("id", "group");
@@ -338,6 +341,7 @@ text {
   box-shadow: rgb(194 202 214) 0px 0.6em, rgb(194 202 214) 0px -0.6em,
     rgb(194 202 214) 0.6em 0px, rgb(194 202 214) -0.6em 0px;
   border: 5px solid white;
+  background-color: black;
 }
 a {
   color: #42b983;
